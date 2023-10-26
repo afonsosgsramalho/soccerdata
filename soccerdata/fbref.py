@@ -459,12 +459,23 @@ class FBref(BaseRequestsReader):
             df_table["Time"] = [
                 x.get('csk', None) for x in html_table.xpath(".//td[@data-stat='start_time']")
             ]
-            df_table["Match Report"] = [
-                mlink.xpath("./a/@href")[0]
-                if mlink.xpath("./a") and mlink.xpath("./a")[0].text == "Match Report"
-                else None
-                for mlink in html_table.xpath(".//td[@data-stat='match_report']")
-            ]
+            # df_table["Match Report"] = [
+            #     mlink.xpath("./a/@href")[0]
+            #     if mlink.xpath("./a") and mlink.xpath("./a")[0].text == "Match Report"
+            #     else None
+            #     for mlink in html_table.xpath(".//td[@data-stat='match_report']")
+            # ]
+            match_report = []
+            for mlink in html_table.xpath(".//td[@data-stat='match_report']"):
+                try:
+                    if mlink.xpath("./a") and mlink.xpath("./a")[0].text == "Match Report":
+                        match_report.append(mlink.xpath("./a/@href")[0])
+                    else:
+                        match_report.append(None)
+                except (IndexError, KeyError):
+                    match_report.append(None)
+            df_table['Match Report'] = match_report
+
             nb_levels = df_table.columns.nlevels
             if nb_levels == 2:
                 df_table = df_table.drop("Match Report", axis=1, level=1)
@@ -660,12 +671,24 @@ class FBref(BaseRequestsReader):
             tree = html.parse(reader)
             html_table = tree.xpath("//table[contains(@id, 'sched')]")[0]
             df_table = _parse_table(html_table)
-            df_table["Match Report"] = [
-                mlink.xpath("./a/@href")[0]
-                if mlink.xpath("./a") and mlink.xpath("./a")[0].text == "Match Report"
-                else None
-                for mlink in html_table.xpath(".//td[@data-stat='match_report']")
-            ]
+            # df_table["Match Report"] = [
+            #     mlink.xpath("./a/@href")[0]
+            #     if mlink.xpath("./a") and mlink.xpath("./a")[0].text == "Match Report"
+            #     else None
+            #     for mlink in html_table.xpath(".//td[@data-stat='match_report']")
+            # ]
+            
+            match_report = []
+            for mlink in html_table.xpath(".//td[@data-stat='match_report']"):
+                try:
+                    if mlink.xpath("./a") and mlink.xpath("./a")[0].text == "Match Report":
+                        match_report.append(mlink.xpath("./a/@href")[0])
+                    else:
+                        match_report.append(None)
+                except (IndexError, KeyError):
+                    match_report.append(None)
+
+            df_table["Match Report"] = match_report
             df_table["league"] = lkey
             df_table["season"] = skey
             df_table = df_table.dropna(how="all")
